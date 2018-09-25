@@ -2,7 +2,7 @@ from collections import Counter
 import re
 import sys
 
-def extractRelatedData(fileName, regex):
+def getExtractedRelatedData(fileName, regex):
     r = re.compile(regex, re.IGNORECASE)
     return map(extractValue, filter(r.match, open(fileName, 'r', encoding="utf8")))
 
@@ -13,11 +13,11 @@ def getComposers(names):
     return map(getComposer, names.split("; "))
 
 def getComposer(fullName):
-    name = fullName.split(', ')
+    names = fullName.split(', ')
     
-    if(not name[1:]):
-        return filterOutYear(name[0])
-    return name[0] + ", " + "".join(map(getNameInitials, name[1:]))
+    if(not names[1:]):
+        return filterOutYear(names[0])
+    return (names[0] + ", " + "".join(map(getNameInitials, names[1:]))).strip()
 
 def filterOutYear(input):
     result = ''
@@ -25,6 +25,7 @@ def filterOutYear(input):
         if(value.startswith("(") and value[1].isdigit()):
             continue
         result += value
+    return result
 
 def getNameInitials(name):
     if(not name or name.startswith("(")):
@@ -33,13 +34,13 @@ def getNameInitials(name):
 
 def getCenturies(input):
     reYear = re.compile(r".*(\d{4}).*")
-    reTh = re.compile(r".*(\d{2})th.*")
+    reOrder = re.compile(r".*(\d{2})th.*")
     result = list()
     for candidate in input:
         year = reYear.match(candidate)
         if(year is not None):
             result.append(getCenturyString(getCentury(year.group(1))))
-        century = reTh.match(candidate)
+        century = reOrder.match(candidate)
         if(century is not None):
             result.append(getCenturyString(century.group(1)))
     return result
@@ -62,7 +63,7 @@ def getCenturyString(century):
     else:
         return century + "th century"
 
-def agregateStats(data):
+def getAgregatedStats(data):
     stats = Counter()
     for d in filter(None, data):
         stats[d] += 1
@@ -79,16 +80,16 @@ def main(fileName, regex):
     
     if(regex == "composer"):
         regex = r"Composer: (.*)"
-        data = extractRelatedData(fileName, regex)
+        data = getExtractedRelatedData(fileName, regex)
         for composers in data:
             stats.extend(getComposers(composers))
 
     elif(regex == "century"):
         regex = r"Composition Year: (.*)"
-        data = extractRelatedData(fileName, regex)
+        data = getExtractedRelatedData(fileName, regex)
         stats.extend(getCenturies(data))
 
-    stats = agregateStats(stats)
+    stats = getAgregatedStats(stats)
     printStats(stats)
 
 if __name__ == "__main__":
