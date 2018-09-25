@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "C:\\Users\\ManhHungT\\Documents\\GitHub\\PV248-Homework\\01-text\\scorelib.txt",
+                "Composer"
+            ]
+        },
+        {
+            "name": "Python: century (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "C:\\Users\\ManhHungT\\Documents\\GitHub\\PV248-Homework\\01-text\\scorelib.txt",
+                "Century"
+            ]
+        },
+        {
+            "name": "Python: Attach",
+            "type": "python",
+            "request": "attach",
+            "port": 5678,
+            "host": "localhost"
+        },
+        {
+            "name": "Python: Current File (External Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "externalTerminal",
+            "args": [
+                "scorelib.txt",
+                "Composer"
+            ]
+        }
+    ]
+}
