@@ -13,7 +13,7 @@ def getComposers(names):
     return map(getComposer, names.split("; "))
 
 def getComposer(fullName):
-    names = fullName.split(', ')
+    names = re.split(', | ', fullName)
     
     if(not names[1:]):
         return filterOutYear(names[0])
