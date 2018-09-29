@@ -154,14 +154,24 @@ def load(filename):
 
 
 def getPersonFromString(person):
-    r = re.match(r"(.*) \((\d*)--(\d*)\)", person)
+    r = re.match(
+        r"(.*) \(((\d*)--(\d*)|\+(\d+)|\*(\d+)|(\d+))\)", person)
     someone = Person()
     if(r is None):
         someone.name = person
     else:
         someone.name = r.group(1)
-        someone.born = int(r.group(2))
-        someone.died = int(r.group(3))
+        if(r.group(3)):
+            someone.born = int(r.group(3))
+        elif(r.group(6)):
+            someone.born = int(r.group(6))
+        elif(r.group(7)):
+            someone.born = int(r.group(7))
+
+        if(r.group(4)):
+            someone.died = int(r.group(4))
+        elif(r.group(5)):
+            someone.died = int(r.group(5))
     return someone
 
 

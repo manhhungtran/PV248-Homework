@@ -13,9 +13,9 @@ class TestHelpingMethods(unittest.TestCase):
 
     def test_getPersonFromString(self):
         person = scorelib.getPersonFromString("Purcell, Henry (1659-1695)")
-        self.assertEqual(person.name, "Purcell, Henry")
-        self.assertEqual(person.born, 1659)
-        self.assertEqual(person.died, 1695)
+        self.assertEqual(person.name, "Purcell, Henry (1659-1695)")
+        self.assertIsNone(person.born)
+        self.assertIsNone(person.died)
 
     def test_getPersonFromString2(self):
         person = scorelib.getPersonFromString("Purcell, Henry")
@@ -23,10 +23,34 @@ class TestHelpingMethods(unittest.TestCase):
         self.assertIsNone(person.born)
         self.assertIsNone(person.died)
 
-    def test_getPersonFromString3(self):
-        person = scorelib.getPersonFromString("Purcell, Henry (1965)")
-        self.assertEqual(person.name, "Purcell, Henry (1965)")
+    def test_getPersonFromString4(self):
+        person = scorelib.getPersonFromString("Purcell, Henry (1965--)")
+        self.assertEqual(person.name, "Purcell, Henry")
+        self.assertEqual(person.born, 1965)
+        self.assertIsNone(person.died)
+
+    def test_getPersonFromString5(self):
+        person = scorelib.getPersonFromString("Purcell, Henry (--1965)")
+        self.assertEqual(person.name, "Purcell, Henry")
         self.assertIsNone(person.born)
+        self.assertEqual(person.died, 1965)
+
+    def test_getPersonFromString6(self):
+        person = scorelib.getPersonFromString("Purcell, Henry (+1965)")
+        self.assertEqual(person.name, "Purcell, Henry")
+        self.assertIsNone(person.born)
+        self.assertEqual(person.died, 1965)
+
+    def test_getPersonFromString7(self):
+        person = scorelib.getPersonFromString("Purcell, Henry (*1965)")
+        self.assertEqual(person.name, "Purcell, Henry")
+        self.assertEqual(person.born, 1965)
+        self.assertIsNone(person.died)
+
+    def test_getPersonFromString8(self):
+        person = scorelib.getPersonFromString("Purcell, Henry (1965)")
+        self.assertEqual(person.name, "Purcell, Henry")
+        self.assertEqual(person.born, 1965)
         self.assertIsNone(person.died)
 
     def test_splitKeyAndValue(self):
