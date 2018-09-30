@@ -2,22 +2,23 @@ from collections import Counter
 import re
 import sys
 
+
 def getExtractedRelatedData(fileName, regex):
     r = re.compile(regex, re.IGNORECASE)
     return map(extractValue, filter(r.match, open(fileName, 'r', encoding="utf8")))
 
+
 def extractValue(line):
     return re.match(r"(?:.*): (.*)", line).group(1)
+
 
 def getComposers(names):
     return map(getComposer, names.split("; "))
 
+
 def getComposer(fullName):
-    names = re.split(', | ', fullName)
-    
-    if(not names[1:]):
-        return filterOutYear(names[0])
-    return (names[0] + ", " + "".join(map(getNameInitials, names[1:]))).strip()
+    return re.sub(r'\(.*\)', '', fullName).strip()
+
 
 def filterOutYear(input):
     result = ''
@@ -27,10 +28,12 @@ def filterOutYear(input):
         result += value
     return result
 
+
 def getNameInitials(name):
     if(not name or name.startswith("(")):
         return ''
     return name[0].upper() + ". "
+
 
 def getCenturies(input):
     reYear = re.compile(r".*(\d{4}).*")
@@ -44,13 +47,15 @@ def getCenturies(input):
         if(century is not None):
             result.append(getCenturyString(century.group(1)))
     return result
-    
+
+
 def getCentury(year):
     if (int(year) % 100 == 0):
         century = int(year) // 100
     else:
         century = (int(year) // 100) + 1
     return str(century)
+
 
 def getCenturyString(century):
     lastDigit = re.search(r"\d{1}$", century).group(0)
@@ -63,21 +68,25 @@ def getCenturyString(century):
     else:
         return century + "th century"
 
+
 def getAgregatedStats(data):
     stats = Counter()
     for d in filter(None, data):
         stats[d] += 1
-    return stats    
+    return stats
+
 
 def printStats(stats):
     for key, value in stats.items():
         print("%s: %d" % (key, value))
 
-# MAIN 
+# MAIN
+
+
 def main(fileName, regex):
     regex = regex.lower()
     stats = list()
-    
+
     if(regex == "composer"):
         regex = r"Composer: (.*)"
         data = getExtractedRelatedData(fileName, regex)
@@ -91,6 +100,7 @@ def main(fileName, regex):
 
     stats = getAgregatedStats(stats)
     printStats(stats)
+
 
 if __name__ == "__main__":
     filename = sys.argv[1]
