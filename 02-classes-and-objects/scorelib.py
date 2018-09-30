@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import operator
 
 
 class Print:
@@ -16,10 +17,10 @@ class Print:
         if(not self.partiture):
             partiture = "no"
 
-        print("Print number: {}\n{}\nPartiture: {}\n\n".format(
-              self.edition,
+        print("Print number: {}\n{}\nPartiture: {}\n".format(
+              self.print_id or "",
               self.edition.toString(),
-              partiture))
+              partiture or ""))
 
     def composition(self):
         return self.edition.composition
@@ -27,7 +28,7 @@ class Print:
     def setBooleanByString(self, boolString):
         if(boolString == "no"):
             self.partiture = False
-        if(boolString == "yes"):
+        elif(boolString == "yes"):
             self.partiture = True
 
 
@@ -42,10 +43,10 @@ class Edition:
         self.authors.extend(map(getPersonFromString, editors.split(", ")))
 
     def toString(self):
-        return "Edition {}\nEditor: {}\nPublication Year: {}\n{}".format(
-            self.name,
+        return "Edition: {}\nEditor: {}\nPublication Year: {}\n{}".format(
+            self.name or "",
             ", ".join(map(lambda x: x.toString(), self.authors)),
-            self.year,
+            self.year or "",
             self.composition.toString())
 
 
@@ -60,12 +61,12 @@ class Composition:
         self.authors = list()
 
     def toString(self):
-        return "Title: {}\nIncipit: {}\nKey: {}\nGenre: {}\n Composition Year: {}\n{}\nComposer: {}".format(
-            self.name,
-            self.incipit,
-            self.key,
-            self.genre,
-            self.year,
+        return "Title: {}\nIncipit: {}\nKey: {}\nGenre: {}\nComposition Year: {}\n{}\nComposer: {}".format(
+            self.name or "",
+            self.incipit or "",
+            self.key or "",
+            self.genre or "",
+            self.year or "",
             "\n".join(map(lambda x: x.toString(), self.voices)),
             "; ".join(map(lambda x: x.toString(), self.authors))
         )
@@ -97,7 +98,7 @@ class Voice:
             self.range = "{}--{}".format(rVoice.group(1), rVoice.group(2))
 
     def toString(self):
-        if(range is None):
+        if(self.range is None):
             return "Voice {}: {}".format(self.order, self.name)
         return "Voice {}: {}, {}".format(self.order, self.range, self.name)
 
@@ -109,7 +110,9 @@ class Person:
         self.died = None
 
     def toString(self):
-        return "{} ({}--{})".format(self.name, self.born, self.died)
+        if(self.born is not None or self.died is not None):
+            return "{} ({}--{})".format(self.name or "", self.born or "", self.died or "")
+        return self.name or ""
 
 
 def load(filename):
@@ -134,9 +137,11 @@ def load(filename):
             elif(key == "Key"):
                 print.composition().key = value
             elif(key == "Composition Year"):
-                print.composition().year = int(value)
+                if(value.isdigit()):
+                    print.composition().year = int(value)
             elif(key == "Publication Year"):
-                print.edition.year = int(value)
+                if(value.isdigit()):
+                    print.edition.year = int(value)
             elif(key == "Edition"):
                 print.edition.name = value
             elif(key == "Editor"):
@@ -150,7 +155,7 @@ def load(filename):
 
         result.append(print)
 
-    return result.sort(key=lambda x: x.print_id)
+    return sorted(result, key=operator.attrgetter('print_id'))
 
 
 def getPersonFromString(person):

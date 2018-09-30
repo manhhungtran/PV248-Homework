@@ -9,4 +9,4 @@ def test_load(fileName):
 
 
 if __name__ == '__main__':
-    test_load(sys.argv[0])
+    test_load(sys.argv[1])
