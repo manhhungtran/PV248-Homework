@@ -16,11 +16,10 @@ class Print:
             partiture = "yes"
         if(not self.partiture):
             partiture = "no"
-
         print("Print number: {}\n{}\nPartiture: {}\n".format(
-              self.print_id or "",
+              self.print_id,
               self.edition.toString(),
-              partiture or ""))
+              partiture))
 
     def composition(self):
         return self.edition.composition
@@ -116,8 +115,10 @@ class Person:
 
 
 def load(filename):
-    with open(filename, 'r', encoding="utf8") as f:
-        content = f.read()
+    content = open(filename, 'r', encoding="utf-8").read()
+
+    if not content:
+        return ""
 
     blockObjects = content.split("\n\n")
     result = list()
