@@ -18,7 +18,7 @@ class Print:
             partiture = "no"
 
         edition = self.edition.toString()
-        if(not edition):
+        if(edition):
             edition = "\n" + edition
 
         print("Print Number: {}{}\nPartiture: {}\n".format(
@@ -66,7 +66,7 @@ class Composition:
 
     def toString(self):
         voices = "\n".join(map(lambda x: x.toString(), self.voices))
-        if(not voices):
+        if(voices):
             voices = "\n" + voices
         return "Title: {}\nIncipit: {}\nKey: {}\nGenre: {}\nComposition Year: {}\nComposer: {}{}".format(
             self.name or "",
