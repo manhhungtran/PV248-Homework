@@ -16,7 +16,7 @@ class Print:
             partiture = "yes"
         if(not self.partiture):
             partiture = "no"
-        print("Print number: {}\n{}\nPartiture: {}\n".format(
+        print("Print Number: {}\n{}\nPartiture: {}\n".format(
               self.print_id,
               self.edition.toString(),
               partiture))
@@ -86,7 +86,7 @@ class Voice:
         self.range = None
 
     def setVoiceByString(self, key, voice):
-        rKey = re.match(r"Voice (\d*)", key)
+        rKey = re.match(r"voice (\d*)", key)
         rVoice = re.match(r"(.*)--(.*)(;|,) (.*)", voice)
 
         if(rVoice is None):
@@ -127,31 +127,35 @@ def load(filename):
         print = Print()
 
         for key, value in filter(None, map(splitKeyAndValue, blockObject.split("\n"))):
-            if(key == "Print Number"):
+            if key is None or value is None:
+                continue
+
+            key = key.lower()
+            if(key == "print number"):
                 print.print_id = int(value)
-            elif(key == "Composer"):
+            elif(key == "composer"):
                 print.composition().addComposersByString(value)
-            elif(key == "Title"):
+            elif(key == "title"):
                 print.composition().name = value
-            elif(key == "Genre"):
+            elif(key == "genre"):
                 print.composition().genre = value
-            elif(key == "Key"):
+            elif(key == "key"):
                 print.composition().key = value
-            elif(key == "Composition Year"):
+            elif(key == "composition year"):
                 if(value.isdigit()):
                     print.composition().year = int(value)
-            elif(key == "Publication Year"):
+            elif(key == "publication year"):
                 if(value.isdigit()):
                     print.edition.year = int(value)
-            elif(key == "Edition"):
+            elif(key == "edition"):
                 print.edition.name = value
-            elif(key == "Editor"):
+            elif(key == "editor"):
                 print.edition.setEditorsByString(value)
-            elif(key == "Partiture"):
+            elif(key == "partiture"):
                 print.setBooleanByString(value)
-            elif(key == "Incipit"):
+            elif(key == "incipit"):
                 print.composition().incipit = value
-            elif(str(key).startswith("Voice")):
+            elif(str(key).startswith("voice")):
                 print.composition().addVoiceByString(key, value)
 
         result.append(print)
