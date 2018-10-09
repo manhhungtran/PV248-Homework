@@ -16,9 +16,14 @@ class Print:
             partiture = "yes"
         if(not self.partiture):
             partiture = "no"
-        print("Print Number: {}\n{}\nPartiture: {}\n".format(
+
+        edition = self.edition.toString()
+        if(not edition):
+            edition = "\n" + edition
+
+        print("Print Number: {}{}\nPartiture: {}\n".format(
               self.print_id,
-              self.edition.toString(),
+              edition,
               partiture))
 
     def composition(self):
@@ -60,14 +65,17 @@ class Composition:
         self.authors = list()
 
     def toString(self):
-        return "Title: {}\nIncipit: {}\nKey: {}\nGenre: {}\nComposition Year: {}\n{}\nComposer: {}".format(
+        voices = "\n".join(map(lambda x: x.toString(), self.voices))
+        if(not voices):
+            voices = "\n" + voices
+        return "Title: {}\nIncipit: {}\nKey: {}\nGenre: {}\nComposition Year: {}\nComposer: {}{}".format(
             self.name or "",
             self.incipit or "",
             self.key or "",
             self.genre or "",
             self.year or "",
-            "\n".join(map(lambda x: x.toString(), self.voices)),
-            "; ".join(map(lambda x: x.toString(), self.authors))
+            "; ".join(map(lambda x: x.toString(), self.authors)),
+            voices
         )
 
     def addComposersByString(self, names):
@@ -127,7 +135,7 @@ def load(filename):
         print = Print()
 
         for key, value in filter(None, map(splitKeyAndValue, blockObject.split("\n"))):
-            if key is None or value is None:
+            if key is None:
                 continue
 
             key = key.lower()
