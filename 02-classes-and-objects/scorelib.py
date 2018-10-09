@@ -166,7 +166,8 @@ def load(filename):
             elif(str(key).startswith("voice")):
                 print.composition().addVoiceByString(key, value)
 
-        result.append(print)
+        if(print.print_id is not None):
+            result.append(print)
 
     return sorted(result, key=operator.attrgetter('print_id'))
 
