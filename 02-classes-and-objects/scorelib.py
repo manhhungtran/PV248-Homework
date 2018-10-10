@@ -66,7 +66,7 @@ class Composition:
 
     def toString(self):
         voices = "\n".join(map(lambda x: x.toString(), self.voices))
-        if(voices):
+        if(voices.strip()):
             voices = "\n" + voices
         return "Title: {}\nIncipit: {}\nKey: {}\nGenre: {}\nComposition Year: {}\nComposer: {}{}".format(
             self.name or "",
