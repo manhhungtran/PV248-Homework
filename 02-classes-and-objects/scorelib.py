@@ -18,7 +18,7 @@ class Print:
             partiture = "no"
 
         edition = self.edition.toString()
-        if(edition):
+        if(edition.strip()):
             edition = "\n" + edition
 
         print("Print Number: {}{}\nPartiture: {}\n".format(
