@@ -95,14 +95,14 @@ class Voice:
 
     def setVoiceByString(self, key, voice):
         rKey = re.match(r"voice (\d*)", key)
-        rVoice = re.match(r"(.*)--(.*)(;|,) (.*)", voice)
+        rVoice = re.match(r"(.*?--.*?)[,|;] (.*)|(.*)", voice)
 
         if(rVoice is None):
             self.name = voice
-            self.order = int(rKey.group(1))
+            self.order = int(rKey.group(1).strip())
         else:
-            self.name = rVoice.group(4)
-            self.range = "{}--{}".format(rVoice.group(1), rVoice.group(2))
+            self.name = rVoice.group(2)
+            self.range = rVoice.group(1)
 
     def toString(self):
         if(self.range is None):
