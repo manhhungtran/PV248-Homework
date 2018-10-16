@@ -26,7 +26,7 @@ class EditionDB:
     def process(self, existingEdition, cursor, compositionID):
         if existingEdition is None:
             return cursor.execute('INSERT INTO edition (score, name, year) VALUES (?, ?, ?)',
-                                  (compositionID, self.edition.name, None)).lastrowid
+                                  (compositionID, self.edition.name, self.edition.year)).lastrowid
         else:
             return existingEdition[0]
 
