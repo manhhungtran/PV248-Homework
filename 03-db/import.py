@@ -13,7 +13,7 @@ class VoiceDB:
 
     def process(self, cursor, compositionID):
         return cursor.execute('INSERT INTO voice (number, score, range, name) VALUES (?, ?, ?, ?)',
-                              (self.voice.number,
+                              (self.voice.order,
                                compositionID,
                                self.voice.range,
                                self.voice.name)).lastrowid
@@ -39,15 +39,16 @@ class AuthorDB:
         if existingAuthor is None:
             authorID = cursor.execute('INSERT INTO person (name, born, died) VALUES (?, ?, ?)',
                                       (self.author.name, self.author.born, self.author.died)).lastrowid
+        else:
+            if self.author.born is not None:
+                cursor.execute('UPDATE person SET born=? WHERE id=?',
+                               (self.author.born, existingAuthor[0]))
+            if self.author.died is not None:
+                cursor.execute('UPDATE person SET died=? WHERE id=?',
+                               (self.author.died, existingAuthor[0]))
 
-        if self.author.born is not None:
-            cursor.execute('UPDATE person SET born=? WHERE id=?',
-                           (self.author.born, existingAuthor[0]))
-        if self.author.died is not None:
-            cursor.execute('UPDATE person SET died=? WHERE id=?',
-                           (self.author.died, existingAuthor[0]))
+            authorID = existingAuthor[0]
 
-        authorID = existingAuthor[0]
         cursor.execute('INSERT INTO score_author (score, composer) VALUES (?, ?)',
                        (compositionID, authorID))
 
@@ -56,7 +57,7 @@ class CompositionDB:
     def __init__(self, composition):
         self.composition = composition
 
-    def generateSQLInsert(self):
+    def generateSQLQuery(self):
         result = 'SELECT id FROM score WHERE name=?'
         if self.composition.genre is not None:
             result += ' AND genre=?'
@@ -94,6 +95,17 @@ class CompositionDB:
 
         return params
 
+    def process(self, cursor, existingComposition):
+        if existingComposition is not None:
+            return existingComposition[0]
+        else:
+            return cursor.execute('INSERT INTO score (name, genre, key, incipit, year) VALUES (?, ?, ?, ?, ?)',
+                                  (self.composition.name,
+                                   self.composition.genre,
+                                   self.composition.key,
+                                   self.composition.incipit,
+                                   self.composition.year)).lastrowid
+
 
 class EditorDB:
     def __init__(self, editor):
@@ -119,35 +131,35 @@ class EditorDB:
 
 
 def processPrint(print, cursor):
+    # Composition
     compositiondb = CompositionDB(print.edition.composition)
-    compositionQuery = compositiondb.generateSQLInsert()
+    compositionQuery = compositiondb.generateSQLQuery()
     compositionParam = compositiondb.generateSQLParams()
-    composition = cursor.execute(
+    existingComposition = cursor.execute(
         compositionQuery,
         compositionParam).fetchone()
-    if composition is not None:
-        compositionID = composition[0]
-    else:
-        compositionID = cursor.execute('INSERT INTO score (name, genre, key, incipit, year) VALUES (?, ?, ?, ?, ?)',
-                                       (composition.name, composition.genre, composition.key, composition.incipit,
-                                        composition.year)).lastrowid
+    compositionID = compositiondb.process(cursor, existingComposition)
 
-    for author in print.edition.composition.authors:
-        authorDB = authorDB(author)
+    # Authors
+    for author in print.composition().authors:
+        authorDB = AuthorDB(author)
         existingAuthor = cursor.execute(
             'SELECT id FROM person WHERE name=?', (author.name,)).fetchone()
         authorDB.process(cursor, existingAuthor, compositionID)
 
-    for voice in print.edition.composition.voices:
+    # Voices
+    for voice in print.composition().voices:
         voiceDB = VoiceDB(voice)
         voiceDB.process(cursor, compositionID)
 
+    # Edition
     edition = print.edition
     existingEdition = cursor.execute(
         'SELECT id FROM edition WHERE name=? AND score=?', (edition.name, compositionID, )).fetchone()
     editionDB = EditionDB(edition)
     editionID = editionDB.process(existingEdition, cursor, compositionID)
 
+    # Editors
     for editor in print.edition.authors:
         editorDB = EditorDB(editor)
         existingEditor = cursor.execute(
@@ -155,13 +167,14 @@ def processPrint(print, cursor):
 
         editorDB.process(existingEditor, editionID, cursor)
 
+    # Partiture
     if print.partiture:
         partiture = 'Y'
     else:
         partiture = 'N'
 
     cursor.execute('INSERT INTO print (id, partiture, edition) VALUES (?, ?, ?)',
-                   (print.print_id, partiture, editionID)).lastrowid
+                   (print.print_id, partiture, editionID))
 
 
 def processData(sourceFile, cursor, connection):
