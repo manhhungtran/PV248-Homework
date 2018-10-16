@@ -96,10 +96,10 @@ class Voice:
     def setVoiceByString(self, key, voice):
         rKey = re.match(r"voice (\d*)", key)
         rVoice = re.match(r"(.*?--.*?)[,|;] (.*)|(.*)", voice)
+        self.order = int(rKey.group(1))
 
-        if(rVoice is None):
+        if(not rVoice.group(1)):
             self.name = voice
-            self.order = int(rKey.group(1).strip())
         else:
             self.name = rVoice.group(2)
             self.range = rVoice.group(1)
