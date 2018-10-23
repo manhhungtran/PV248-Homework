@@ -58,7 +58,11 @@ class CompositionDB:
         self.composition = composition
 
     def generateSQLQuery(self):
-        result = 'SELECT id FROM score WHERE name=?'
+        result = 'SELECT id FROM score WHERE'
+        if self.composition.name is not None:
+            result += ' name=?'
+        else:
+            result += ' name is null'
         if self.composition.genre is not None:
             result += ' AND genre=?'
         else:
@@ -80,7 +84,9 @@ class CompositionDB:
 
     def generateSQLParams(self):
         params = []
-        params.append(self.composition.name)
+        if self.composition.name is not None:
+            params.append(self.composition.name)
+
         if self.composition.genre is not None:
             params.append(self.composition.genre)
 
@@ -95,8 +101,51 @@ class CompositionDB:
 
         return params
 
-    def process(self, cursor, existingComposition):
+    def process(self, cursor, existingComposition, print):
         if existingComposition is not None:
+            existingComposers = cursor.execute('SELECT composer FROM score_author WHERE score=?',
+                                               (existingComposition[0], )).fetchall()
+            existingComposersIDs = map(lambda x: x[0], existingComposers)
+
+            for author in print.composition().authors:
+                if author.name is not None:
+                    existingAuthor = cursor.execute(
+                        'SELECT id FROM person WHERE name=?', (author.name, )).fetchone()
+                else:
+                    existingAuthor = cursor.execute(
+                        'SELECT id FROM person WHERE name is null').fetchone()
+
+                if existingAuthor is not None and existingAuthor[0] in existingComposersIDs:
+                    continue
+                else:
+                    return cursor.execute('INSERT INTO score (name, genre, key, incipit, year) VALUES (?, ?, ?, ?, ?)',
+                                          (self.composition.name,
+                                           self.composition.genre,
+                                           self.composition.key,
+                                           self.composition.incipit,
+                                           self.composition.year)).lastrowid
+
+            existingVoices = cursor.execute(
+                'SELECT number, name, range FROM voice WHERE score=?', (existingComposition[0], )).fetchall()
+
+            if not print.composition().voices and existingVoices is None:
+                return existingComposition[0]
+
+            numbers = map(lambda x: x[0], existingVoices)
+            names = map(lambda x: x[1], existingVoices)
+            ranges = map(lambda x: x[2], existingVoices)
+
+            for voice in print.composition().voices:
+                if(voice.name in names and voice.range in ranges and voice.order in numbers):
+                    continue
+                else:
+                    return cursor.execute('INSERT INTO score (name, genre, key, incipit, year) VALUES (?, ?, ?, ?, ?)',
+                                          (self.composition.name,
+                                           self.composition.genre,
+                                           self.composition.key,
+                                           self.composition.incipit,
+                                           self.composition.year)).lastrowid
+
             return existingComposition[0]
         else:
             return cursor.execute('INSERT INTO score (name, genre, key, incipit, year) VALUES (?, ?, ?, ?, ?)',
@@ -138,13 +187,17 @@ def processPrint(print, cursor):
     existingComposition = cursor.execute(
         compositionQuery,
         compositionParam).fetchone()
-    compositionID = compositiondb.process(cursor, existingComposition)
+    compositionID = compositiondb.process(cursor, existingComposition, print)
 
     # Authors
     for author in print.composition().authors:
         authorDB = AuthorDB(author)
-        existingAuthor = cursor.execute(
-            'SELECT id FROM person WHERE name=?', (author.name,)).fetchone()
+        if(author.name is not None):
+            existingAuthor = cursor.execute(
+                'SELECT id FROM person WHERE name=?', (author.name, )).fetchone()
+        else:
+            existingAuthor = cursor.execute(
+                'SELECT id FROM person WHERE name is null').fetchone()
         authorDB.process(cursor, existingAuthor, compositionID)
 
     # Voices
@@ -154,17 +207,24 @@ def processPrint(print, cursor):
 
     # Edition
     edition = print.edition
-    existingEdition = cursor.execute(
-        'SELECT id FROM edition WHERE name=? AND score=?', (edition.name, compositionID, )).fetchone()
+    if(edition is not None):
+        existingEdition = cursor.execute(
+            'SELECT id FROM edition WHERE name=? AND score=?', (edition.name, compositionID)).fetchone()
+    else:
+        existingEdition = cursor.execute(
+            'SELECT id FROM edition WHERE name is null AND score=?', (compositionID, )).fetchone()
     editionDB = EditionDB(edition)
     editionID = editionDB.process(existingEdition, cursor, compositionID)
 
     # Editors
     for editor in print.edition.authors:
         editorDB = EditorDB(editor)
-        existingEditor = cursor.execute(
-            'SELECT id FROM person WHERE name=?', (editor.name,)).fetchone()
-
+        if(editor is not None):
+            existingEditor = cursor.execute(
+                'SELECT id FROM person WHERE name=?', (editor.name, )).fetchone()
+        else:
+            existingEditor = cursor.execute(
+                'SELECT id FROM person WHERE name is null').fetchone()
         editorDB.process(existingEditor, editionID, cursor)
 
     # Partiture
