@@ -135,7 +135,7 @@ def load(filename):
         print = Print()
 
         for key, value in filter(None, map(splitKeyAndValue, blockObject.split("\n"))):
-            if key is None:
+            if key is None or value is None:
                 continue
 
             key = key.lower()
@@ -144,19 +144,21 @@ def load(filename):
             elif(key == "composer"):
                 print.composition().addComposersByString(value)
             elif(key == "title"):
-                print.composition().name = value
+                print.composition().name = value.strip()
             elif(key == "genre"):
                 print.composition().genre = value
             elif(key == "key"):
                 print.composition().key = value
             elif(key == "composition year"):
+                value = value.strip()
                 if(value.isdigit()):
                     print.composition().year = int(value)
             elif(key == "publication year"):
+                value = value.strip()
                 if(value.isdigit()):
                     print.edition.year = int(value)
             elif(key == "edition"):
-                print.edition.name = value
+                print.edition.name = value.strip()
             elif(key == "editor"):
                 print.edition.setEditorsByString(value)
             elif(key == "partiture"):
