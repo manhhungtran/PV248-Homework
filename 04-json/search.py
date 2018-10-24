@@ -43,27 +43,29 @@ def main(searchText):
         rePrint["Composition Year"] = rComposition["year"]
         rePrint["Genre"] = rComposition["genre"]
 
-        for editor in rEditors:
+        if rEditors is not None:
             editors = list()
-            if(editor["born"] is not None or editor["died"] is not None):
-                editors.append("{} ({}--{})".format(editor["name"] or "",
-                                                    editor["born"] or "",
-                                                    editor["died"] or ""))
-            else:
-                editors.append(editor["name"] or "")
+            for editor in rEditors:
+                if(editor["born"] is not None or editor["died"] is not None):
+                    editors.append("{} ({}--{})".format(editor["name"] or "",
+                                                        editor["born"] or "",
+                                                        editor["died"] or ""))
+                else:
+                    editors.append(editor["name"] or "")
 
-        rePrint["Editor"] = editors
+            rePrint["Editor"] = editors
 
-        for composer in rComposers:
+        if rComposers is not None:
             composers = list()
-            if(composer["born"] is not None or composer["died"] is not None):
-                composers.append("{} ({}--{})".format(composer["name"] or "",
-                                                      composer["born"] or "",
-                                                      composer["died"] or ""))
-            else:
-                composers.append(editor["name"] or "")
+            for composer in rComposers:
+                if(composer["born"] is not None or composer["died"] is not None):
+                    composers.append("{} ({}--{})".format(composer["name"] or "",
+                                                          composer["born"] or "",
+                                                          composer["died"] or ""))
+                else:
+                    composers.append(composer["name"] or "")
 
-        rePrint["Composer"] = composers
+            rePrint["Composer"] = composers
 
         voices = dict()
         for voice in rVoices:
