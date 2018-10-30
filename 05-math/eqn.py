@@ -86,5 +86,5 @@ def fixValues(lis, length):
 
 
 if __name__ == '__main__':
-    # main(sys.argv[1])
-    main("C:\\Users\\ManhHungT\\Documents\\GitHub\\PV248-Homework\\05-math\\3")
+    main(sys.argv[1])
+    # main("C:\\Users\\ManhHungT\\Documents\\GitHub\\PV248-Homework\\05-math\\3")
