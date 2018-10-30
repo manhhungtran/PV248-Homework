@@ -15,9 +15,9 @@ def parse(line):
         res = r.match(line)
         value = int(res.group(2) or 1)
         if res.group(1) == "-":
-            value *= -1
+            value = value * (-1)
         key = res.group(3)
-        result[key or YOHO] -= value
+        result[key or YOHO] += value
         line = res.group(4).strip()
 
     return result
@@ -42,7 +42,7 @@ def main(file):
             if not k in variablesKeys and k != YOHO:
                 variablesKeys.append(k)
 
-        number += int(res[YOHO])
+        number -= int(res[YOHO])
 
         variableValues = list()
         for key in variablesKeys:
@@ -68,9 +68,9 @@ def main(file):
         try:
             solutions = np.linalg.solve(np.array(variables), np.array(results))
             solutionsString = []
-            for var, sol in zip(sorted(list(variablesKeys)), solutions):
+            for var, sol in zip(list(variablesKeys), solutions):
                 solutionsString.append('{} = {}' .format(var, sol))
-            print('solution: {}'.format(", ".join(solutionsString)))
+            print('solution: {}'.format(", ".join(sorted(solutionsString))))
         except:
             solutionSpaceDimendion = len(variablesKeys) - variablesRank
             print('solution space dimension: {}'.format(solutionSpaceDimendion))
