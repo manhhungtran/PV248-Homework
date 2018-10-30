@@ -17,7 +17,7 @@ def parse(line):
         if res.group(1) == "-":
             value *= -1
         key = res.group(3)
-        result[key or YOHO] += value
+        result[key or YOHO] -= value
         line = res.group(4).strip()
 
     return result
@@ -42,12 +42,11 @@ def main(file):
             if not k in variablesKeys and k != YOHO:
                 variablesKeys.append(k)
 
+        number += int(res[YOHO])
+
         variableValues = list()
         for key in variablesKeys:
-            if key == YOHO:
-                number += res[key]
-            else:
-                variableValues.append(res[key] or 0)
+            variableValues.append(res[key] or 0)
 
         variables.append(variableValues)
         results.append(number)
@@ -87,4 +86,5 @@ def fixValues(lis, length):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    # main(sys.argv[1])
+    main("C:\\Users\\ManhHungT\\Documents\\GitHub\\PV248-Homework\\05-math\\3")
