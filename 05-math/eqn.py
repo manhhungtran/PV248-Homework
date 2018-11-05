@@ -51,11 +51,13 @@ def main(file):
         variables.append(variableValues)
         results.append(number)
 
-    variables = list(map(lambda x: fixValues(x, len(lines)), variables))
+    maxi = len(max(variables, key=len))
+    variables = list(map(lambda x: fixValues(
+        x, maxi), variables))
 
-    # print(variablesKeys)
-    # print(variables)
-    # print(results)
+    # print("Variable keys", variablesKeys)
+    # print("Variables", variables)
+    # print("Results", results)
 
     augmentedMatrix = [row.copy() for row in variables]
     for index, number in enumerate(results):
@@ -63,6 +65,9 @@ def main(file):
 
     variablesRank = np.linalg.matrix_rank(np.array(variables))
     augmentedMatrixRank = np.linalg.matrix_rank(np.array(augmentedMatrix))
+
+    # print(augmentedMatrixRank, augmentedMatrix)
+    # print(variablesRank, variables)
 
     if variablesRank == augmentedMatrixRank:
         try:
