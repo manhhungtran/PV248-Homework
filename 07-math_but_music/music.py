@@ -8,15 +8,15 @@ import heapq
 
 AMPLITUDE = 20
 
-WTF = ['C', 'Cis', 'D', 'Es', 'E',
-       'F', 'Fis', 'G', 'Gis', 'A', 'Bes', 'B']
+WTF = ['c', "cis", "d", "es", "e", "f", "fis", "g", "gis", "a", "bes", "b"]
 
 
 def getPeak(window):
+    window.sort()
     amplitudes = np.abs(np.fft.rfft(window))
     limit = np.mean(amplitudes) * AMPLITUDE
-    peaks = [amp if amp >= limit else 0 for amp in amplitudes]
-
+    peaks = [ampl if ampl >= limit else 0 for ampl in amplitudes]
+    peaks.sort()
     maxPeaks = []
     for i in range(3):
         maxPeak = heapq.nlargest(3, peaks)
@@ -33,40 +33,39 @@ def getPeak(window):
         except IndexError:
             pass
 
-    return maxPeaks.sort()
+    maxPeaks.sort()
+    return maxPeaks
 
 
 def pitch(freq, a4):
     C0 = a4 * pow(2, -4.75)
     h = round(12 * math.log2(freq/C0))
     octave = h // 12
-    n = h % 12
+    index = h % 12
 
-    return WTF[n] + str(octave)
+    return WTF[index] + str(octave)
 
 
 def diff(freq, a4):
     C0 = a4 * pow(2, -4.75)
     h = round(12 * math.log2(freq/C0))
 
-    return round(1200 * math.log2(freq / pow(2, (h / 12)) * C0))
+    res = round((h % 1) * 100)
+    return res
 
 
-def diffToString(freq):
-    dif = diff(freq)
+def diffToString(freq, a4):
+    dif = diff(freq, a4)
 
     if int(dif) > 0:
         return " + {}".format(dif)
-    elif int(dif) == 0:
-        return ""
     else:
         return " - {}".format(str(dif)[1:])
 
 
 def pitchToString(freq, a4):
-
     pitc = pitch(freq, a4)
-    parser = re.search(r'(\w+)(-)?(\d+)', pitc, re.IGNORECASE)
+    parser = re.search(r'([a-zA-Z]+)(-)?(\d+)', pitc, re.IGNORECASE)
 
     if (parser.group(3) != "0"):
         if (parser.group(2) is not None):
@@ -88,28 +87,20 @@ def pitchToString(freq, a4):
 
 
 def toString(freq, a4):
-    return pitchToString(freq, a4) + diffToString(freq)
-
-
-def getResult(amplitude):
-    amplitude = round(amplitude, 2)
-    if amplitude > 0.1:
-        return amplitude, diffToString(amplitude), toString(amplitude), getPeak(amplitude)
-    return None
+    return pitchToString(freq, a4) + diffToString(freq, a4)
 
 
 def printResult(peaks, a4):
     start = 0
     end = 0
-    pitches = []
     for time, peak in enumerate(peaks):
-        if time > 0:
-            if peak != peaks[time-1]:
+        if time > 0 and peak != peaks[time-1]:
+            if pitches:
                 print("{:.1f}-{:.1f} {}".format(start, end, " ".join(pitches)))
-                start = end
-                pitches = map(lambda x: toString(x, a4), peak)
-        else:
-            pitches = map(lambda x: toString(x, a4), peak)
+
+            start = end
+
+        pitches = map(lambda x: toString(x, a4), peak)
         end += 0.1
 
     print("{:.1f}-{:.1f} {}".format(start,
@@ -123,7 +114,7 @@ def main(a4, fileName):
     sampWidth = reader.getsampwidth()
     channels = reader.getnchannels()
 
-    reqLength = channels * rate * sampWidth
+    # reqLength = channels * rate * sampWidth
 
     minPeak = None
     maxPeak = None
@@ -133,27 +124,20 @@ def main(a4, fileName):
     # print("sampWidth", sampWidth)
     # print("channels", channels)
 
-    fmt = '%dh' % channels * rate
+    frames = reader.getnframes()
+    fmt = "<{}h".format(frames * channels)
 
     window = []
-    windowSize = rate / 10
-    filteredData = []
-    result = []
+    windowSize = rate * 0.1
+    # filteredData = []
+    result = list()
 
     # read data
-    while reader.tell() < reader.getnframes():
-        rawdata = reader.readframes(rate)
-        if len(rawdata) != reqLength:
-            continue
-
-        structData = st.unpack(fmt, rawdata)
-
-        for i in range(0, len(structData), 2):
-            chunk = structData[i: i + 2]
-            filteredData.append((chunk[0] + chunk[1]) / 2)
+    rawData = reader.readframes(frames)
+    structData = st.unpack(fmt, rawData)
 
     # process data
-    for value in filteredData:
+    for value in structData:
         window.append(value)
         if len(window) != windowSize:
             continue
@@ -162,7 +146,6 @@ def main(a4, fileName):
         window = []
 
     # agregate data ???????????????
-    result = filter(None, result)
     printResult(result, float(a4))
     reader.close()
 
