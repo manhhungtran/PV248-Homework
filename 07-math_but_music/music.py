@@ -12,11 +12,10 @@ WTF = ['c', "cis", "d", "es", "e", "f", "fis", "g", "gis", "a", "bes", "b"]
 
 
 def getPeak(window):
-    window.sort()
     amplitudes = np.abs(np.fft.rfft(window))
     limit = np.mean(amplitudes) * AMPLITUDE
     peaks = [ampl if ampl >= limit else 0 for ampl in amplitudes]
-    peaks.sort()
+
     maxPeaks = []
     for i in range(3):
         maxPeak = heapq.nlargest(3, peaks)
@@ -49,8 +48,8 @@ def pitch(freq, a4):
 def diff(freq, a4):
     C0 = a4 * pow(2, -4.75)
     h = round(12 * math.log2(freq/C0))
-
-    res = round((h % 1) * 100)
+    hh = pow(2, (h / 12)) * C0
+    res = round(1200 * math.log2(freq / hh))
     return res
 
 
@@ -59,6 +58,8 @@ def diffToString(freq, a4):
 
     if int(dif) > 0:
         return " + {}".format(dif)
+    elif int(dif) == 0:
+        return " + 0"
     else:
         return " - {}".format(str(dif)[1:])
 
@@ -142,7 +143,8 @@ def main(a4, fileName):
         if len(window) != windowSize:
             continue
 
-        result.append(getPeak(window))
+        jo = getPeak(window)
+        result.append(jo)
         window = []
 
     # agregate data ???????????????
