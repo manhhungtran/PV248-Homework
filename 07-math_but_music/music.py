@@ -45,7 +45,8 @@ def pitch(freq, a4):
     return WTF[n] + str(octave)
 
 
-def diff(freq):
+def diff(freq, a4):
+    C0 = a4 * pow(2, -4.75)
     h = round(12 * math.log2(freq/C0))
 
     return round(1200 * math.log2(freq / pow(2, (h / 12)) * C0))
