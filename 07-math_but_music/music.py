@@ -17,6 +17,7 @@ def getPeak(window):
     peaks = [ampl if ampl >= limit else 0 for ampl in amplitudes]
 
     maxPeaks = []
+    var = len(window)
     for i in range(3):
         maxPeak = heapq.nlargest(3, peaks)
         if maxPeak[i] == 0:
@@ -24,11 +25,11 @@ def getPeak(window):
         index = peaks.index(maxPeak[i])
         maxPeaks.append(index)
         try:
-            peaks[index-1] = 0
+            peaks[index - 1] = 0
         except IndexError:
             pass
         try:
-            peaks[index+1] = 0
+            peaks[index + 1] = 0
         except IndexError:
             pass
 
@@ -39,23 +40,22 @@ def getPeak(window):
 def pitch(freq, a4):
     a4 *= pow(2, -(len(WTF) + 9) / len(WTF))
     distance = len(WTF) * (math.log2(freq) - math.log2(a4))
-    diff = distance % 1
-    diff *= 100
-    diff = int(round(float(diff)))
-    tones, octavesDiff = int(distance % len(WTF)), int(distance // len(WTF))
+    tonesDiff = int(round(float((distance % 1) * 100)))
+    tones = int(distance % len(WTF))
+    octavesDiff = int(distance // len(WTF))
 
-    if diff >= 50:
+    if tonesDiff >= 50:
         tones += 1
-        diff = - (100 - diff)
+        tonesDiff = (-1)*(100 - tonesDiff)
 
     if tones >= 12:
         tones -= 12
         octavesDiff += 1
 
     if octavesDiff < 0:
-        return '{}'.format(WTF[tones] + (',' * (-1 * octavesDiff)), diff)
+        return '{}'.format(WTF[tones] + (',' * (-1 * octavesDiff)), tonesDiff)
     else:
-        return '{}{:+d}'.format(WTF[tones].lower() + ("'" * octavesDiff), diff)
+        return '{}{:+d}'.format(WTF[tones].lower() + ("'" * octavesDiff), tonesDiff)
 
 
 def printResult(peaks, a4):
@@ -95,8 +95,8 @@ def main(a4, fileName):
     frames = reader.getnframes()
     fmt = "<{}h".format(frames * channels)
 
-    window = []
-    windowSize = rate * 0.1
+    # window = []
+    windowSize = int(rate * 0.1)
     # filteredData = []
     result = list()
 
@@ -105,14 +105,10 @@ def main(a4, fileName):
     structData = st.unpack(fmt, rawData)
 
     # process data
-    for value in structData:
-        window.append(value)
-        if len(window) != windowSize:
-            continue
-
-        jo = getPeak(window)
+    for value in range(0, len(structData) - rate, windowSize):
+        jo = getPeak(structData[value: (value + rate)])
         result.append(jo)
-        window = []
+        # window = []
 
     # agregate data ???????????????
     printResult(result, float(a4))
