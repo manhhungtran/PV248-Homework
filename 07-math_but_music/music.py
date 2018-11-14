@@ -37,58 +37,25 @@ def getPeak(window):
 
 
 def pitch(freq, a4):
-    C0 = a4 * pow(2, -4.75)
-    h = round(12 * math.log2(freq/C0))
-    octave = h // 12
-    index = h % 12
+    a4 *= pow(2, -(len(WTF) + 9) / len(WTF))
+    distance = len(WTF) * (math.log2(freq) - math.log2(a4))
+    diff = distance % 1
+    diff *= 100
+    diff = int(round(float(diff)))
+    tones, octavesDiff = int(distance % len(WTF)), int(distance // len(WTF))
 
-    return WTF[index] + str(octave)
+    if diff >= 50:
+        tones += 1
+        diff = - (100 - diff)
 
+    if tones >= 12:
+        tones -= 12
+        octavesDiff += 1
 
-def diff(freq, a4):
-    C0 = a4 * pow(2, -4.75)
-    h = round(12 * math.log2(freq/C0))
-    hh = pow(2, (h / 12)) * C0
-    res = round(1200 * math.log2(freq / hh))
-    return res
-
-
-def diffToString(freq, a4):
-    dif = diff(freq, a4)
-
-    if int(dif) > 0:
-        return " + {}".format(dif)
-    elif int(dif) == 0:
-        return " + 0"
+    if octavesDiff < 0:
+        return '{}'.format(WTF[tones] + (',' * (-1 * octavesDiff)), diff)
     else:
-        return " - {}".format(str(dif)[1:])
-
-
-def pitchToString(freq, a4):
-    pitc = pitch(freq, a4)
-    parser = re.search(r'([a-zA-Z]+)(-)?(\d+)', pitc, re.IGNORECASE)
-
-    if (parser.group(3) != "0"):
-        if (parser.group(2) is not None):
-            res = "{},,{}".format(parser.group(
-                1), ("," * int(parser.group(3))))
-
-        elif int(parser.group(3)) < 3:
-            res = "{}{}".format(parser.group(
-                1), ("," * (2 - int(parser.group(3)))))
-
-        else:
-            res = "{}{}".format(parser.group(1)[:1].lower(
-            ) + parser.group(1)[1:], ("’" * (int(parser.group(3)) - 3)))
-
-    else:
-        res = "{},,".format(parser.group(1))
-
-    return res
-
-
-def toString(freq, a4):
-    return pitchToString(freq, a4) + diffToString(freq, a4)
+        return '{}{:+d}'.format(WTF[tones].lower() + ("'" * octavesDiff), diff)
 
 
 def printResult(peaks, a4):
@@ -101,7 +68,7 @@ def printResult(peaks, a4):
 
             start = end
 
-        pitches = map(lambda x: toString(x, a4), peak)
+        pitches = map(lambda x: pitch(x, a4), peak)
         end += 0.1
 
     print("{:.1f}-{:.1f} {}".format(start,
