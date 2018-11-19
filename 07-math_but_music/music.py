@@ -3,7 +3,7 @@ import re
 import struct as st
 import sys
 import wave as w
-import math
+from math import log2, pow
 import heapq
 
 AMPLITUDE = 20
@@ -17,7 +17,6 @@ def getPeak(window):
     peaks = [ampl if ampl >= limit else 0 for ampl in amplitudes]
 
     maxPeaks = []
-    var = len(window)
     for i in range(3):
         maxPeak = heapq.nlargest(3, peaks)
         if maxPeak[i] == 0:
@@ -38,33 +37,39 @@ def getPeak(window):
 
 
 def pitch(freq, a4):
-    a4 *= pow(2, -(len(WTF) + 9) / len(WTF))
-    distance = len(WTF) * (math.log2(freq) - math.log2(a4))
-    tonesDiff = int(round(float((distance % 1) * 100)))
-    tones = int(distance % len(WTF))
-    octavesDiff = int(distance // len(WTF))
+    C0 = a4*pow(2, -4.75)
+    h = round(12*log2(freq/C0))
+    octavesDiff = (int(h) // 12) - 3
+    n = int(h) % 12
+
+    tones = n
+    roughFreq = pow(2, (h / 12)) * C0
+    tonesDiff = round(1200 * log2(freq / roughFreq))
 
     if tonesDiff >= 50:
         tones += 1
-        tonesDiff = (-1)*(100 - tonesDiff)
+        tonesDiff = ((-1)*(100 - tonesDiff))
 
     if tones >= 12:
         tones -= 12
         octavesDiff += 1
 
     if octavesDiff < 0:
-        return '{}'.format(WTF[tones] + (',' * (-1 * octavesDiff)), tonesDiff)
+        result = WTF[tones] + (',' * (-1 * octavesDiff - 1))
     else:
-        return '{}{:+d}'.format(WTF[tones].lower() + ("'" * octavesDiff), tonesDiff)
+        result = WTF[tones] + ("'" * octavesDiff)
+
+    return '{}{:+d}'.format(result, tonesDiff)
 
 
 def printResult(peaks, a4):
     start = 0
     end = 0
+    pitches = []
     for time, peak in enumerate(peaks):
         if time > 0 and peak != peaks[time-1]:
-            if pitches:
-                print("{:.1f}-{:.1f} {}".format(start, end, " ".join(pitches)))
+            print("{:.1f}-{:.1f} {}".format(start,
+                                            end, " ".join(pitches)))
 
             start = end
 
@@ -79,13 +84,13 @@ def main(a4, fileName):
     reader = w.open(fileName, 'rb')
 
     rate = reader.getframerate()
-    sampWidth = reader.getsampwidth()
+    # sampWidth = reader.getsampwidth()
     channels = reader.getnchannels()
 
     # reqLength = channels * rate * sampWidth
 
-    minPeak = None
-    maxPeak = None
+    # minPeak = None
+    # maxPeak = None
 
     # print("frames", frames)
     # print("rate", rate)
@@ -105,7 +110,7 @@ def main(a4, fileName):
     structData = st.unpack(fmt, rawData)
 
     # process data
-    for value in range(0, len(structData) - rate, windowSize):
+    for value in range(0, len(structData) - rate + 1, windowSize):
         jo = getPeak(structData[value: (value + rate)])
         result.append(jo)
         # window = []
