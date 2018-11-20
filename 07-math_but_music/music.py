@@ -8,7 +8,7 @@ import heapq
 
 AMPLITUDE = 20
 
-WTF = ['c', "cis", "d", "es", "e", "f", "fis", "g", "gis", "a", "bes", "b"]
+WTF = ['C', 'Cis', 'D', 'Es', 'E', 'F', 'Fis', 'G', 'Gis', 'A', 'Bes', 'B']
 
 
 def getPeak(window):
@@ -57,7 +57,7 @@ def pitch(freq, a4):
     if octavesDiff < 0:
         result = WTF[tones] + (',' * (-1 * octavesDiff - 1))
     else:
-        result = WTF[tones] + ("'" * octavesDiff)
+        result = WTF[tones].lower() + ("'" * octavesDiff)
 
     return '{}{:+d}'.format(result, tonesDiff)
 
