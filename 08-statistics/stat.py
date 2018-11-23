@@ -26,7 +26,7 @@ class DateData:
         if self.number and self.number:
             return "{}/{}".format(self.date, self.number)
 
-        Exception("No such datetie")
+        Exception("No such datetime")
 
 
 class Result:
@@ -36,7 +36,6 @@ class Result:
         self.last = 0.0
         self.median = 0.0
         self.mean = 0.0
-        self.datesData = list()
 
     def serialize(self):
         result = dict()
@@ -61,9 +60,8 @@ def parseColumns(date):
         Exception("Date is in invalid format!")
 
 
-def parseAverage(fileName):
-    result = Result()
-
+def parse(fileName):
+    result = list()
     with open(fileName, "r", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile, delimiter=',')
         for line in reader:
@@ -73,16 +71,14 @@ def parseAverage(fileName):
                 else:
                     datedata = parseColumns(column)
                     datedata.score = float(data)
-                    result.datesData.append(datedata)
+                    result.append(datedata)
 
     return result
 
 
 def main(fileName, mode):
-    results = parseAverage(fileName)
-    data = results.datesData
+    data = parse(fileName)
 
-    rawScore = {}
     rawData = {}
 
     for datesData in data:
@@ -115,8 +111,8 @@ def main(fileName, mode):
         student.last = numpy.percentile(numpy.array(values), 75)
 
         results[key] = student.serialize()
-        print(len(values))
-    # print(json.dumps(results, indent=4))
+        # print(len(values))
+    print(json.dumps(results, indent=4))
 
 
 if __name__ == '__main__':
