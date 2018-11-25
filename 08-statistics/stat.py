@@ -84,19 +84,19 @@ def main(fileName, mode):
     for datesData in data:
         if mode == "exercises":
             if datesData.number not in rawData:
-                rawData[datesData.number] = []
-
-            rawData[datesData.number].append(float(datesData.score))
+                rawData[datesData.number] = float(datesData.score)
+            else:
+                rawData[datesData.number] += float(datesData.score)
         elif mode == "dates":
             if datesData.date not in rawData:
-                rawData[datesData.date] = []
-
-            rawData[datesData.date].append(float(datesData.score))
+                rawData[datesData.date] = float(datesData.score)
+            else:
+                rawData[datesData.date] += float(datesData.score)
         elif mode == "deadlines":
             if datesData.getDeadline() not in rawData:
-                rawData[datesData.getDeadline()] = []
-
-            rawData[datesData.getDeadline()].append(float(datesData.score))
+                rawData[datesData.getDeadline()] = float(datesData.score)
+            else:
+                rawData[datesData.getDeadline()] += float(datesData.score)
         else:
             Exception("Invalid mode.")
 
