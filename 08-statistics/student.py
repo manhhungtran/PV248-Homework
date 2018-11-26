@@ -56,9 +56,9 @@ class Student:
 
         if self.regSlope != 0:
             result['date 16'] = datetime.date.fromordinal(
-                math.ceil((16.0 / self.regSlope) + startDateTime)).__str__()
+                math.floor((16.0 / self.regSlope) + startDateTime)).__str__()
             result['date 20'] = datetime.date.fromordinal(
-                math.ceil((20.0 / self.regSlope) + startDateTime)).__str__()
+                math.floor((20.0 / self.regSlope) + startDateTime)).__str__()
 
         return result
 
@@ -167,7 +167,7 @@ def main(fileName, ide):
     dates = numpy.array([date - datetime.datetime.strptime('2018-9-17',
                                                            '%Y-%m-%d').date().toordinal() for date in dates])
 
-    print(dates, score)
+    # print(dates, score)
     student.regSlope = numpy.linalg.lstsq(
         [[date] for date in dates], score, rcond=-1)[0][0]
 
