@@ -1,8 +1,8 @@
 import json
-import socket
 # import ssl
 import sys
 import urllib.request as req
+import urllib.parse as parse
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -43,9 +43,17 @@ def ensureRequestTimeout(request):
 def prepareData(code, headers, jsonContent, content):
     data = dict()
     data[CODE] = code
-    data[HEADERS] = dict(headers or {})
-    data[JSON] = jsonContent
-    data[CONTENT] = content
+
+    if headers:
+        data[HEADERS] = dict()
+        for hkey, hvalue in headers:
+            data[HEADERS][hkey] = hvalue
+
+    if content:
+        try:
+            data[JSON] = json.loads(content)
+        except ValueError:
+            data[CONTENT] = content
 
     return json.dumps(data, indent=2)
 
@@ -69,26 +77,29 @@ def handle(url):
 
             self.send_response(HTTPStatus.OK)
 
-            for key, value in headers:
-                self.send_header(key, value)
-
             self.send_header(CONTENT_TYPE, "application/json")
             self.send_header(CONTENT_LENGTH, str(len(data)))
             self.end_headers()
 
+            self.wfile.write(bytes(data, 'UTF-8'))
+
         def do_GET(self):
             # print("gettings something...")
+            requestedUrlParams = parse.urlparse(self.path).query
+            requestedUrl = "{}?{}".format(url, requestedUrlParams)
+
             if HOST in self.headers:
                 del self.headers[HOST]
 
-            request = req.Request(url, None, self.headers, method="GET")
+            request = req.Request(requestedUrl, None,
+                                  self.headers, method="GET")
             try:
                 with req.urlopen(request, timeout=1) as response:
                     content = response.read().decode(ENCODING)
                     headers = response.getheaders()
                     self.getRequest(HTTPStatus.OK, headers,
                                     content, None, None)
-            except socket.timeout:
+            except:
                 self.timeOut()
 
         def do_POST(self):
@@ -105,7 +116,7 @@ def handle(url):
                 self.InvalidJson()
                 return
 
-            url = req.Request(
+            result = req.Request(
                 url=request[URL],
                 data=request[CONTENT],
                 headers=request[HEADERS],
@@ -113,12 +124,12 @@ def handle(url):
             timeout = ensureRequestTimeout(request)
 
             try:
-                with req.urlopen(url, timeout=timeout) as response:
+                with req.urlopen(result, timeout=timeout) as response:
                     content = response.read().decode(ENCODING)
                     headers = response.getheaders()
                     self.getRequest(HTTPStatus.OK, headers,
                                     content, None, None)
-            except socket.timeout:
+            except:
                 self.getRequest(TIMEOUT, None, None, None, None)
                 return
 
