@@ -43,7 +43,7 @@ def ensureRequestTimeout(request):
 def prepareData(code, headers, jsonContent, content):
     data = dict()
     data[CODE] = code
-    data[HEADERS] = dict(headers)
+    data[HEADERS] = dict(headers or {})
     data[JSON] = jsonContent
     data[CONTENT] = content
 
@@ -53,16 +53,18 @@ def prepareData(code, headers, jsonContent, content):
 def handle(url):
     class HTTPHandler(BaseHTTPRequestHandler):
         def InvalidJson(self):
-            return self.getRequest('invalid json', None, None, None, None)
+            self.getRequest('invalid json', None, None, None, None)
 
         def timeOut(self):
-            return self.getRequest(TIMEOUT, None, None, None, None)
+            self.getRequest(TIMEOUT, None, None, None, None)
 
         def getRequest(self, code, headers, responseContent, jsonContent, content):
             try:
                 jsonContent = json.loads(responseContent)
             except:
                 content = responseContent
+
+            headers = headers or {}
             data = prepareData(code, headers, jsonContent, content)
 
             self.send_response(HTTPStatus.OK)
@@ -87,7 +89,7 @@ def handle(url):
                     self.getRequest(HTTPStatus.OK, headers,
                                     content, None, None)
             except socket.timeout:
-                return self.timeOut()
+                self.timeOut()
 
         def do_POST(self):
             # print("posting something...")
@@ -95,12 +97,13 @@ def handle(url):
             content = ''
             if CONTENT_LENGTH in self.headers:
                 content = self.rfile.read(
-                    int(self.headers.getheader(CONTENT_LENGTH)))
+                    int(self.headers.get(CONTENT_LENGTH)))
 
             try:
                 request = json.loads(content.decode(ENCODING))
             except:
-                return self.InvalidJson()
+                self.InvalidJson()
+                return
 
             url = req.Request(
                 url=request[URL],
@@ -116,10 +119,11 @@ def handle(url):
                     self.getRequest(HTTPStatus.OK, headers,
                                     content, None, None)
             except socket.timeout:
-                return self.getRequest(TIMEOUT, None, None, None, None)
+                self.getRequest(TIMEOUT, None, None, None, None)
+                return
 
             if request[URL] is None or (request[TYPE] == "POST" and request[CONTENT] is None):
-                return self.InvalidJson()
+                self.InvalidJson()
 
     return HTTPHandler
 
