@@ -1,10 +1,11 @@
 import json
-# import ssl
 import sys
-import urllib.request as req
 import urllib.parse as parse
+import urllib.request as req
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
+# import ssl
+from urllib.error import HTTPError
 
 # default encoding
 ENCODING = "UTF-8"
@@ -95,7 +96,7 @@ def handle(url):
             self.wfile.write(bytes(data, 'UTF-8'))
 
         def do_GET(self):
-            # print("gettings something...")
+
             requestedUrlParams = parse.urlparse(self.path).query
             requestedUrl = "{}?{}".format(url, requestedUrlParams)
 
@@ -108,20 +109,17 @@ def handle(url):
                 with req.urlopen(request, timeout=1) as response:
                     content = response.read().decode(ENCODING)
                     headers = response.getheaders()
-                    self.getRequest(HTTPStatus.OK, headers,
+                    self.getRequest(response.status, headers,
                                     content)
+            except HTTPError as error:
+                return self.getRequest(error.code, None, None)
             except:
                 self.timeOut()
 
         def do_POST(self):
-            # print("posting something...")
-
             try:
-                content = ''
-                if CONTENT_LENGTH in self.headers:
-                    content = self.rfile.read(
-                        int(self.headers.get(CONTENT_LENGTH), 0))
-
+                leng = int(self.headers.get(CONTENT_LENGTH), 0)
+                content = self.rfile.read(leng)
                 request = json.loads(content.decode(ENCODING))
 
                 if URL not in request or (TYPE in request and request[TYPE] == "POST" and CONTENT not in request):
@@ -131,19 +129,21 @@ def handle(url):
                 self.InvalidJson()
                 return
 
-            result = req.Request(
-                url=request[URL],
-                data=ensureRequestData(request),
-                headers=ensureRequestHeader(request),
-                method=ensureRequestMethod(request))
-            timeout = ensureRequestTimeout(request)
-
             try:
+                result = req.Request(
+                    url=request[URL],
+                    data=ensureRequestData(request),
+                    headers=ensureRequestHeader(request),
+                    method=ensureRequestMethod(request))
+                timeout = ensureRequestTimeout(request)
+
                 with req.urlopen(result, timeout=timeout) as response:
                     content = response.read().decode(ENCODING)
                     headers = response.getheaders()
-                    self.getRequest(HTTPStatus.OK, headers,
+                    self.getRequest(response.status, headers,
                                     content)
+            except HTTPError as error:
+                return self.getRequest(error.code, None, None)
             except:
                 self.timeOut()
                 return
