@@ -75,7 +75,7 @@ def handle(url):
             self.end_headers()
 
         def do_GET(self):
-            print("gettings something...")
+            # print("gettings something...")
             if HOST in self.headers:
                 del self.headers[HOST]
 
@@ -125,9 +125,9 @@ def handle(url):
 
 
 def main(port, url):
-    print("starting...")
+    # print("starting...")
     server = HTTPServer(('', int(port)), handle(url))
-    print("listening...")
+    # print("listening...")
     server.serve_forever()
 
 
