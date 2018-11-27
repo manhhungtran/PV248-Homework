@@ -90,7 +90,7 @@ def handle(url):
                 return self.timeOut()
 
         def do_POST(self):
-            print("posting something...")
+            # print("posting something...")
 
             content = ''
             if CONTENT_LENGTH in self.headers:
@@ -127,6 +127,7 @@ def handle(url):
 def main(port, url):
     # print("starting...")
     server = HTTPServer(('', int(port)), handle(url))
+    # print("everything set!")
     # print("listening...")
     server.serve_forever()
 
