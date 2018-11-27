@@ -23,21 +23,31 @@ CODE = "code"
 
 
 def ensureRequestMethod(request):
-    if request[TYPE]:
-        type = "GET"
+    if TYPE in request:
+        return request[TYPE]
     else:
-        type = request[TYPE]
+        return "GET"
 
-    return type
+
+def ensureRequestData(request):
+    if TYPE in request and request[TYPE] == "POST":
+        return bytes(request[CONTENT], ENCODING)
+    else:
+        return None
 
 
 def ensureRequestTimeout(request):
-    if request[TIMEOUT]:
-        timeout = [TIMEOUT]
+    if TIMEOUT in request:
+        return request[TIMEOUT]
     else:
-        timeout = 1
+        return 1
 
-    return timeout
+
+def ensureRequestHeader(request):
+    if HEADERS in request:
+        return request[HEADERS]
+    else:
+        return {}
 
 
 def prepareData(code, headers, jsonContent, content):
@@ -105,21 +115,25 @@ def handle(url):
         def do_POST(self):
             # print("posting something...")
 
-            content = ''
-            if CONTENT_LENGTH in self.headers:
-                content = self.rfile.read(
-                    int(self.headers.get(CONTENT_LENGTH)))
-
             try:
+                content = ''
+                if CONTENT_LENGTH in self.headers:
+                    content = self.rfile.read(
+                        int(self.headers.get(CONTENT_LENGTH), 0))
+
                 request = json.loads(content.decode(ENCODING))
+
+                if URL not in request or (TYPE in request and request[TYPE] == "POST" and CONTENT not in request):
+                    self.InvalidJson()
+                    return
             except:
                 self.InvalidJson()
                 return
 
             result = req.Request(
                 url=request[URL],
-                data=request[CONTENT],
-                headers=request[HEADERS],
+                data=ensureRequestData(request),
+                headers=ensureRequestHeader(request),
                 method=ensureRequestMethod(request))
             timeout = ensureRequestTimeout(request)
 
@@ -132,9 +146,6 @@ def handle(url):
             except:
                 self.getRequest(TIMEOUT, None, None, None, None)
                 return
-
-            if request[URL] is None or (request[TYPE] == "POST" and request[CONTENT] is None):
-                self.InvalidJson()
 
     return HTTPHandler
 
