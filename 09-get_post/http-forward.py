@@ -56,14 +56,14 @@ def prepareData(code, headers, jsonContent, content):
 
     if headers:
         data[HEADERS] = dict()
-        for hkey, hvalue in headers:
-            data[HEADERS][hkey] = hvalue
+        for key, value in headers:
+            data[HEADERS][key] = value
+
+    if jsonContent:
+        data[JSON] = jsonContent
 
     if content:
-        try:
-            data[JSON] = json.loads(content)
-        except ValueError:
-            data[CONTENT] = content
+        data[CONTENT] = content
 
     return json.dumps(data, indent=2)
 
@@ -71,22 +71,23 @@ def prepareData(code, headers, jsonContent, content):
 def handle(url):
     class HTTPHandler(BaseHTTPRequestHandler):
         def InvalidJson(self):
-            self.getRequest('invalid json', None, None, None, None)
+            self.getRequest('invalid json', None, None)
 
         def timeOut(self):
-            self.getRequest(TIMEOUT, None, None, None, None)
+            self.getRequest(TIMEOUT, None, None)
 
-        def getRequest(self, code, headers, responseContent, jsonContent, content):
+        def getRequest(self, code, headers, responseContent):
+            jsonContent = None
+            content = None
+
             try:
                 jsonContent = json.loads(responseContent)
             except:
                 content = responseContent
 
-            headers = headers or {}
             data = prepareData(code, headers, jsonContent, content)
 
             self.send_response(HTTPStatus.OK)
-
             self.send_header(CONTENT_TYPE, "application/json")
             self.send_header(CONTENT_LENGTH, str(len(data)))
             self.end_headers()
@@ -101,14 +102,14 @@ def handle(url):
             if HOST in self.headers:
                 del self.headers[HOST]
 
-            request = req.Request(requestedUrl, None,
-                                  self.headers, method="GET")
+            request = req.Request(url=requestedUrl, data=None,
+                                  headers=self.headers, method="GET")
             try:
                 with req.urlopen(request, timeout=1) as response:
                     content = response.read().decode(ENCODING)
                     headers = response.getheaders()
                     self.getRequest(HTTPStatus.OK, headers,
-                                    content, None, None)
+                                    content)
             except:
                 self.timeOut()
 
@@ -142,9 +143,9 @@ def handle(url):
                     content = response.read().decode(ENCODING)
                     headers = response.getheaders()
                     self.getRequest(HTTPStatus.OK, headers,
-                                    content, None, None)
+                                    content)
             except:
-                self.getRequest(TIMEOUT, None, None, None, None)
+                self.timeOut()
                 return
 
     return HTTPHandler
