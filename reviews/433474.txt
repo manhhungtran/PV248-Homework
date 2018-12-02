@@ -1,0 +1,73 @@
+review od 433474 *0.5
+
+Review bylo velmi zdařilé, mnoho zajímavých postřehů. Nejvíce oveňuji odkazy, které řeší danou problematiku více podorobně.
+
+----
+HW01
+----
+
+Celkovo sa mi paci dekompozicia ulohy na funkcie a k samotnej funkcionalite nemam snad ziaden komentare
+
+Napriek tomu, ze tento predmet urcite nie je zamerany na efektivitu kodu a dodrziavanie specifickeho python stylu (ktory si aj tak kazda firma nastavi sama a nejlepsie je mat nieco konstatne, co tento program urcite dodzriava), doplnim par komentarov:
+
+* nasledujuca podmienka vyzera dost nekonzistentne (a mozno na prvy pohlad nie je zrejme, co nou zamyslas; chces vynutit, aby 'lastDigit' bol retazec?):
+
+(lastDigit == '3' and int(century) != 13)
+
+premennu 'lastDigit', ktorej meno naznacuje, ze ide o cislo, porovnavas s retazcom, na druhej strane, v dalsom porovnani s cislom 13 uz pretypovavas hodnotu premennej 'century' na int
+
+* Na vytvorenie prazdneho listu pouzivas volanie konstruktoru, co sa da nahradit priamym zapisom:
+
+stats = list()
+--> stats = []
+
+Pouzitie konstruktoru je totiz pri vytvarani prazdneho zoznamu vykonnostne pomalsie. (Hoci chapem, ze bavit sa v pripade programovania v pythone o rychlosti je diskutabilne, v kazdom pripade, pri castom vytvarani prazdnych zoznamov je preferovanejsie pouzivat druhy zapis)
+
+* obcasne pouzitie nadbytocnych zatvoriek v podmienenych 
+vyrazoch napr.:
+
+if(century is not None):
+
+* standardne pomenovanie funkcii a premennych v pythone by malo byt v tvare:
+my_variable / my_function namiesto myVariable / myFunction
+
+(PEP8 link: https://www.python.org/dev/peps/pep-0008/#introduction)
+
+----
+HW05
+----
+
+* pomenovat globalnu premennu "YOHO" je podla mna cestou ako netusit co je v nej ulozene, ked sa clovek na ten kod pozrie o dva tyzdne
+
+* vytvaranie zoznamu cez konstruktor vs. priamy zapis, tektokrat pouzivas v kode oboje, co je minimalne nekonzistentne napr.:
+
+solutionsString = []
+variables = list()
+
+* rovnake drobne poznamky k stylu ako v HW01 (pomenovanie premennych / funkcii)
+
+* pomerne nadbytocne zatvorky okolo premennej v nasledujucom priapde: 
+while(line)
+
+* podmieneny vyraz na (ne)prislusnost 'x' v 'y' by mal byt preformulovany:
+if not k in variablesKeys and k != YOHO:
+--> if k not in variablesKeys and k != YOHO:
+
+* try - except blok na riadkoch 71 - 79 pouziva prilis vseobecny vynimku, pravdepodobne by bolo mozne odchytavat specificky typ
+
+* v programe ostalo pomerne dost zakomentovanych ladiacich vypisov (co sa samozrejme hodi pri takejto ulohe, na druhej strane by vo finalnom programe nemali ostavat)
+
+----
+HW06
+----
+
+* rovnake drobne poznamky k stylu ako v HW01 a HW05 (pomenovanie premennych / funkcii)
+
+* drobnost: nadbytocny import:
+import re
+
+* nemam poznamky k funkcionalite, no narozdiel od HW01 cely program tvori jedna main funkcia a hoci to nesposobuje ziadnu duplicitu kodu iste casti funkcionality by sa pravdepodobne dali napisat v separatnych funkciach (co by napr. zlepsilo moznosti testovat spravnost jednotlivych funkcii)
+
+* z hladiska citatelnosti kodu by mozno stalo za zvazenie oddelit jednotlive casti kodu aspon komentarmi, ked uz pre ne neboli vytvorene samostatne funckie
+
+* taktiez par zabudnutych zakomentovanych ladiacich vypisov
