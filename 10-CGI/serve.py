@@ -46,7 +46,12 @@ def main(port, directo):
     handler = handle()
     http = Server(server_address=serverAddress,
                   RequestHandlerClass=handler)
-    http.serve_forever()
+    try:
+        http.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    http.server_close()
 
 
 if __name__ == '__main__':
