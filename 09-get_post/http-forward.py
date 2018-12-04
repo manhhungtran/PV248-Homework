@@ -1,3 +1,4 @@
+import re
 import json
 import sys
 import urllib.parse as parse
@@ -51,6 +52,13 @@ def ensureRequestHeader(request):
         return {}
 
 
+def ensureRequestUrl(request):
+    if re.match('http://.*|https://.*', request[URL]):
+        return request[URL]
+    else:
+        return 'http:*//' + request[URL]
+
+
 def prepareData(code, headers, jsonContent, content):
     data = dict()
     data[CODE] = code
@@ -96,12 +104,11 @@ def handle(url):
             self.wfile.write(bytes(data, 'UTF-8'))
 
         def do_GET(self):
+            if HOST in self.headers:
+                del self.headers[HOST]
 
             requestedUrlParams = parse.urlparse(self.path).query
             requestedUrl = "{}?{}".format(url, requestedUrlParams)
-
-            if HOST in self.headers:
-                del self.headers[HOST]
 
             request = req.Request(url=requestedUrl, data=None,
                                   headers=self.headers, method="GET")
@@ -117,21 +124,21 @@ def handle(url):
                 self.timeOut()
 
         def do_POST(self):
+            leng = int(self.headers.get(CONTENT_LENGTH), 0)
+            content = self.rfile.read(leng)
             try:
-                leng = int(self.headers.get(CONTENT_LENGTH), 0)
-                content = self.rfile.read(leng)
                 request = json.loads(content.decode(ENCODING))
-
-                if URL not in request or (TYPE in request and request[TYPE] == "POST" and CONTENT not in request):
-                    self.InvalidJson()
-                    return
             except:
+                self.InvalidJson()
+                return
+
+            if URL not in request or (TYPE in request and request[TYPE] == "POST" and CONTENT not in request):
                 self.InvalidJson()
                 return
 
             try:
                 result = req.Request(
-                    url=request[URL],
+                    url=ensureRequestUrl(request),
                     data=ensureRequestData(request),
                     headers=ensureRequestHeader(request),
                     method=ensureRequestMethod(request))
@@ -153,6 +160,9 @@ def handle(url):
 
 def main(port, url):
     # print("starting...")
+    if not str.startswith('http://') and not str.startswith('https://'):
+        url = 'http//' + url
+
     server = HTTPServer(('', int(port)), handle(url))
     # print("everything set!")
     # print("listening...")
