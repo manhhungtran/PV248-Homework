@@ -163,8 +163,9 @@ def handle(url):
         def do_POST(self):
             leng = int(self.headers.get(CONTENT_LENGTH), 0)
             content = self.rfile.read(leng)
+            decoded = content.decode(ENCODING)
             try:
-                request = json.loads(content.decode(ENCODING))
+                request = json.loads(decoded, encoding=ENCODING)
             except:
                 self.InvalidJson()
                 return
@@ -198,13 +199,19 @@ def handle(url):
 
 def main(port, url):
     # print("starting...")
-    if not str.startswith('http://') and not str.startswith('https://'):
+    if not url.startswith('http://') and not url.startswith('https://'):
         url = 'http//' + url
 
     server = HTTPServer(('', int(port)), handle(url))
     # print("everything set!")
     # print("listening...")
-    server.serve_forever()
+    try:
+
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    server.server_close()
 
 
 if __name__ == '__main__':
