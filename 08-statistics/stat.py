@@ -16,17 +16,14 @@ class DateData:
     def toString(self):
         return "date {}".format(self.number)
 
-    def toString2(self):
-        return "{};{};{}".format(self.date, self.number, self.score)
-
     def serialize(self):
         return self.date
 
     def getDeadline(self):
-        if self.number and self.number:
+        if self.number and self.date:
             return "{}/{}".format(self.date, self.number)
 
-        Exception("No such datetime")
+        raise Exception("No such datetime")
 
 
 class Result:
@@ -57,7 +54,7 @@ def parseColumns(date):
 
         return result
     else:
-        Exception("Date is in invalid format!")
+        raise Exception("Date is in invalid format!")
 
 
 def parse(fileName):
@@ -84,19 +81,16 @@ def main(fileName, mode):
     for datesData in data:
         if mode == "exercises":
             if datesData.number not in rawData:
-                rawData[datesData.number] = float(datesData.score)
-            else:
-                rawData[datesData.number] += float(datesData.score)
+                rawData[datesData.number] = []
+            rawData[datesData.number].append(datesData.score)
         elif mode == "dates":
             if datesData.date not in rawData:
-                rawData[datesData.date] = float(datesData.score)
-            else:
-                rawData[datesData.date] += float(datesData.score)
+                rawData[datesData.date] = []
+            rawData[datesData.date].append(datesData.score)
         elif mode == "deadlines":
             if datesData.getDeadline() not in rawData:
-                rawData[datesData.getDeadline()] = float(datesData.score)
-            else:
-                rawData[datesData.getDeadline()] += float(datesData.score)
+                rawData[datesData.getDeadline()] = []
+            rawData[datesData.getDeadline()].append(datesData.score)
         else:
             Exception("Invalid mode.")
 
