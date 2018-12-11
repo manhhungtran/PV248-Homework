@@ -125,7 +125,9 @@ class GameManager:
             if self.games[id] is None:
                 board.id = id
                 self.games[id] = board
-                return id
+                return {
+                    "id": id
+                }
 
             id = id + 1
 
@@ -153,7 +155,7 @@ def handle():
 
             # start
             if url.path == '/start' or url.path == '/start/':
-                result = manager.start(params["name"] or '')
+                result = manager.start(params.get("name", ""))
                 return self.getRequest(result)
 
             # status
