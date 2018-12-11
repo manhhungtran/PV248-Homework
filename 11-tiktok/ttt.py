@@ -18,11 +18,15 @@ def getBadResponse(message):
     }
 
 
-def ensureParam(params, key, number):
-    result = params.get(key, None)
+def ensureParam(params, key, number, default=None):
+    result = params.get(key, default)
 
     if result is None:
         raise Exception("Parameter '{}' is missing.".format(key))
+
+    if len(result) > 0:
+        result = result[0]
+
     if number and not result.isnumeric():
         raise Exception("Parameter '{}' should be numeric.".format(key))
 
@@ -68,7 +72,7 @@ class Game:
                             return True
 
     def status(self):
-        if self.done():
+        if self.done() or self.isWinner(1) or self.isWinner(2):
             winner = 0
             if self.isWinner(1):
                 winner = 1
@@ -80,11 +84,11 @@ class Game:
 
         return {
             'board': self.board,
-            'next': self.next
+            'next': self.next or 1
         }
 
     def move(self, player, x, y):
-        if self.done():
+        if self.done() or self.isWinner(1) or self.isWinner(2):
             return getBadResponse("Game has been already finished.")
         if player not in [1, 2]:
             return getBadResponse("Player {} does not exists.".format(player))
@@ -92,7 +96,7 @@ class Game:
         if player == 2 and self.next is None:
             return getBadResponse("Player 1 should play first.")
 
-        if player != self.next:
+        if player != self.next and not self.next is None:
             return getBadResponse("Player {} already played, other player should play now.".format(
                 player))
 
@@ -122,7 +126,7 @@ class GameManager:
         board = Game(name)
         id = 1
         while True:
-            if self.games[id] is None:
+            if not self.games.get(id, None):
                 board.id = id
                 self.games[id] = board
                 return {
@@ -132,13 +136,13 @@ class GameManager:
             id = id + 1
 
     def move(self, id, player, x, y):
-        if self.games[id]:
+        if self.games.get(id, None):
             return self.games[id].move(player, x, y)
 
         return getBadResponse("Game with id '{}' does not exists.".format(id))
 
     def status(self, id):
-        if self.games[id]:
+        if self.games.get(id, None):
             return self.games[id].status()
 
         return getBadResponse("Game with id '{}' does not exists.".format(id))
@@ -155,7 +159,7 @@ def handle():
 
             # start
             if url.path == '/start' or url.path == '/start/':
-                result = manager.start(params.get("name", ""))
+                result = manager.start(ensureParam(params, "name", False, ''))
                 return self.getRequest(result)
 
             # status
@@ -177,15 +181,17 @@ def handle():
                 except Exception as ex:
                     return self.getRequest(getBadResponse(str(ex)))
 
-                manager.move(gameId, player, x, y)
+                return self.getRequest(manager.move(gameId, player, x, y))
+
+            return self.getRequest(getBadResponse("Unsupported request."))
 
         def getRequest(self, responseContent):
             data = json.dumps(responseContent)
 
-            if responseContent[STATUS] == 'ok':
-                self.send_response(HTTPStatus.OK)
-            else:
+            if responseContent.get(STATUS, '') == 'bad':
                 self.send_response(HTTPStatus.BAD_REQUEST)
+            else:
+                self.send_response(HTTPStatus.OK)
 
             self.send_header(CONTENT_TYPE, "application/json")
             self.send_header(CONTENT_LENGTH, str(len(data)))
