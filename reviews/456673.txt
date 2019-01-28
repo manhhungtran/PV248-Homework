@@ -1,0 +1,38 @@
+review od 456673 *0.5
+
+Zdařilé review. Odnesl jsem si toho dost i obecných rad ne jen Pytho nspecific.
+
+- chybí ti newlines na konci souborů :)
+- bylo by vhodné na začatku souborů uvést kódování souboru (# -*- coding: utf-8 -*-)
+- je vidět, že si na formátování kódu použil nějaký automatický formátovač, ten si ale neumí moc dobře poradit s dlouhými one-linery (tedy ten výsledek není pěkně zalomený), toto se dá vyřešit buď úpravou nastavení formátovače, a nebo tím, že se psaní jednořádkových oblud zcela vyhneš (preferované řešení)
+
+Úkol 02:
+
+scorelib.py
+- zbytečné závorky kolem if statementů, navíc někdy psané s mezerou mezi závorkou a ifkem, a někdy bez mezery :)
+- Print.format: zalomení dlouhého řádku na více řádků je fajn, ale když ten samotný print obsahuje newlines, tak by bylo asi rozumnější to místo nacpaní do jednoho volání print() to rozdělit na 3. To samé v Edition.toString, Composition.toString atd...
+- if(edition.strip()) není úplně hezké, pro zvýšení čitelnosti bych výsledek volání funkce bych uložil do adekvátně nazváné proměnné, a if statement bych upravil tak, aby nevyužíval toho, že "" == False
+- V kódu máš funkci toString, tady bych asi spíš použil 'vestavěnou' fuknci __str__, stejně tak u všech ostatních toString metod.
+- používat camelCase v pythonu pro pojmenovávání funkcí (i metod) je děsivé, používá se klasicky snake_case
+
+
+Úkol 04:
+
+getprint.py
+- konstanta CONNECTION_STRING mi nepřipadá správně pojmenovaná; je to název souboru (databáze) na kterou se připojuješ
+- pojmenovávání proměnných s camelCase... pokud na to máš vlastní stylesheet, tak je to OK, ale nikde jsem ho neviděl 
+- pochvala za použití if __name__ == '__main__'
+
+search.py
+- funkce je main je příliš velká. Obecně by se měla celá funkce vlézt na obrazovku. V této funkci se navíc úplně nabízí několik klíčových místo, podle kterých by ji bylo možné rozdělit na menší logické celky.
+- commit() asi není třeba, když program z databáze jen čte, ne?
+- u SQL stringů se nabízí přirozené řešení, jak dlouhé dotazy zalamovat, a to je zalamování podle klíčových slov jazyka SQL, v tomto programu by se to celkem sešlo
+
+
+Úkol 05:
+
+eqn.py
+- funkce (a důvod existence) konstanty YOHO mi není úplně jasná, a asi to ani nechci vědět :D
+- list(filter(lambda x: not re.match(r'^\s*$', x), open(file, 'r', encoding="utf-8"))) : elegantní python, ale je to ošklivá obludnost, a takové by v kódu být němely. Témeř vždy je lepší takovéto kousky kódu rozepsat tak, že jsou pro ostatní programátory jednodušší jak na čtení, tak na pochopení
+- main je opět moc dlouhý, a opět se samo nabízí, jak jej roztdělit na menší funkce
+- zakomentovaný kód je fuj, vůbec by se kódu takové komentáře neměly vyskytovat
